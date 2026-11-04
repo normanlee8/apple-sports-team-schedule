@@ -1062,11 +1062,11 @@ img.menu-icon--league {
 }
 
 /* date | opponent logo | two lines of text
-   The logo column is the 46px logo (same as the main list) plus 6px each
+   The logo column is the 46px logo (same as the main list) plus 10px each
    side, so the logo sits centered between the date and the text */
 .team-game {
   display: grid;
-  grid-template-columns: minmax(26px, max-content) 58px 1fr;
+  grid-template-columns: minmax(26px, max-content) 66px 1fr;
   align-items: center;
   height: 68px;
   border-bottom: 1px solid var(--hairline);
