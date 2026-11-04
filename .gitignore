@@ -1,0 +1,8 @@
+# Apple's SF Pro fonts: licensed for local use only, not for redistribution.
+# Without them the page uses SF Pro from the system on Apple devices.
+fonts/
+
+# OS clutter
+.DS_Store
+Thumbs.db
+desktop.ini
