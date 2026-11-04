@@ -82,10 +82,10 @@ const GAMES = {
       ],
     },
   ],
-  // Grouped by day, soonest first
+  // Grouped by day, soonest first (today is Wed, Mar 18)
   upcoming: [
     {
-      date: "Wed, Mar 18",
+      date: "Fri, Mar 20",
       games: [
         { away: "warriors", home: "heat", time: "4:00 PM" },
         { away: "pistons", home: "wizards", time: "4:00 PM" },
@@ -95,7 +95,7 @@ const GAMES = {
       ],
     },
     {
-      date: "Fri, Mar 20",
+      date: "Sun, Mar 22",
       games: [
         { away: "hornets", home: "hawks", time: "5:00 PM" },
         { away: "cavaliers", home: "bucks", time: "5:30 PM" },
@@ -105,7 +105,7 @@ const GAMES = {
       ],
     },
     {
-      date: "Sun, Mar 22",
+      date: "Tue, Mar 24",
       games: [
         { away: "grizzlies", home: "pelicans", time: "7:00 PM" },
         { away: "rockets", home: "mavericks", time: "7:30 PM" },
@@ -129,12 +129,14 @@ const GAME_DETAILS = {
         { team: "heat", spread: ["-5.5", "-105"], total: ["U 236.5", "-108"], moneyline: "-155" },
       ],
     },
-    // Newest first; games without scores haven't been played yet
+    // The season's meetings, newest first (the same wherever the sheet is
+    // opened from). Games without scores haven't been played yet; the dated
+    // ones match the Upcoming tab and both team schedules.
     series: [
-      { away: "warriors", home: "heat", date: "Thu, May 21", time: "12:00 PM", line: "MIA -8.5" },
-      { current: true }, // the game the sheet was opened for (see seriesList)
-      { away: "heat", home: "warriors", date: "Fri, Apr 2", awayScore: 126, homeScore: 117 },
-      { away: "heat", home: "warriors", date: "Wed, Mar 21", awayScore: 98, homeScore: 117 },
+      { away: "warriors", home: "heat", date: "Fri, Mar 20", time: "4:00 PM" },
+      { away: "warriors", home: "heat", date: "Today" },
+      { away: "warriors", home: "heat", date: "Mon, Mar 16", awayScore: 127, homeScore: 112 },
+      { away: "heat", home: "warriors", date: "Fri, Jan 2", awayScore: 126, homeScore: 117 },
     ],
   },
 };
@@ -151,12 +153,13 @@ const TEAM_PAGES = {
     fullName: "Golden State Warriors",
     theme: { glow: "47, 95, 196", shade: "10, 21, 48", top: "#1d428a", bottom: "#0a1530" },
     next: { label: "Today", day: 18, opponent: "heat", home: false, time: "4:00 PM", network: "ESPN" },
-    // Soonest first
+    // Soonest first (after today's game)
     upcoming: [
       {
         month: "March",
         games: [
-          { weekday: "Sat", day: 21, opponent: "hornets", home: true, time: "4:00 PM", network: "FDSN SE" },
+          { weekday: "Fri", day: 20, opponent: "heat", home: false, time: "4:00 PM", network: "ESPN" },
+          { weekday: "Sat", day: 21, opponent: "hornets", home: false, time: "4:00 PM", network: "FDSN SE" },
           { weekday: "Mon", day: 23, opponent: "spurs", home: false, time: "6:30 PM", network: "NBA TV" },
           { weekday: "Wed", day: 25, opponent: "cavaliers", home: true, time: "5:00 PM", network: "Prime Video" },
           { weekday: "Fri", day: 27, opponent: "timberwolves", home: true, time: "3:30 PM", network: "NBC/Peacock" },
@@ -172,7 +175,6 @@ const TEAM_PAGES = {
           { weekday: "Wed", day: 8, opponent: "blazers", home: false, time: "7:00 PM", network: "NBA TV" },
           { weekday: "Fri", day: 10, opponent: "suns", home: true, time: "7:30 PM", network: "ESPN" },
           { weekday: "Sun", day: 12, opponent: "clippers", home: false, time: "12:30 PM", network: "ABC" },
-          { weekday: "Tue", day: 14, opponent: "rockets", home: true, time: "7:00 PM", network: "NBCS Bay Area" },
         ],
       },
     ],
@@ -185,7 +187,7 @@ const TEAM_PAGES = {
           { weekday: "Sat", day: 14, opponent: "lakers", home: true, teamScore: 95, opponentScore: 104 },
           { weekday: "Thu", day: 12, opponent: "celtics", home: true, teamScore: 119, opponentScore: 110 },
           { weekday: "Tue", day: 10, opponent: "mavericks", home: false, teamScore: 87, opponentScore: 98 },
-          { weekday: "Sun", day: 8, opponent: "rockets", home: true, teamScore: 114, opponentScore: 109 },
+          { weekday: "Sun", day: 8, opponent: "bulls", home: true, teamScore: 114, opponentScore: 109 },
         ],
       },
       {
@@ -196,7 +198,7 @@ const TEAM_PAGES = {
           { weekday: "Mon", day: 23, opponent: "nets", home: false, teamScore: 99, opponentScore: 91 },
           { weekday: "Sat", day: 21, opponent: "thunder", home: true, teamScore: 88, opponentScore: 112 },
           { weekday: "Thu", day: 19, opponent: "pelicans", home: true, teamScore: 126, opponentScore: 111 },
-          { weekday: "Sun", day: 15, opponent: "jazz", home: false, teamScore: 115, opponentScore: 117 },
+          { weekday: "Thu", day: 12, opponent: "jazz", home: false, teamScore: 115, opponentScore: 117 },
         ],
       },
     ],
@@ -205,28 +207,28 @@ const TEAM_PAGES = {
     fullName: "Miami Heat",
     theme: { glow: "152, 0, 46", shade: "45, 10, 10", top: "#98002e", bottom: "#300a0a" },
     next: { label: "Today", day: 18, opponent: "warriors", home: true, time: "4:00 PM", network: "ESPN" },
-    // Soonest first
+    // Soonest first (after today's game). Times are Pacific, like the main list.
     upcoming: [
       {
         month: "March",
         games: [
-          { weekday: "Sat", day: 21, opponent: "hawks", home: false, time: "7:30 PM", network: "FDSN Sun" },
-          { weekday: "Mon", day: 23, opponent: "bucks", home: true, time: "7:30 PM", network: "FDSN Sun" },
-          { weekday: "Wed", day: 25, opponent: "knicks", home: true, time: "7:30 PM", network: "ESPN" },
-          { weekday: "Fri", day: 27, opponent: "celtics", home: false, time: "7:30 PM", network: "NBC/Peacock" },
+          { weekday: "Fri", day: 20, opponent: "warriors", home: true, time: "4:00 PM", network: "ESPN" },
+          { weekday: "Sat", day: 21, opponent: "hawks", home: false, time: "4:30 PM", network: "FDSN Sun" },
+          { weekday: "Mon", day: 23, opponent: "bucks", home: true, time: "4:30 PM", network: "FDSN Sun" },
+          { weekday: "Wed", day: 25, opponent: "knicks", home: true, time: "4:30 PM", network: "ESPN" },
+          { weekday: "Fri", day: 27, opponent: "celtics", home: false, time: "4:30 PM", network: "NBC/Peacock" },
         ],
       },
       {
         month: "April",
         games: [
-          { weekday: "Wed", day: 1, opponent: "pistons", home: true, time: "7:30 PM", network: "FDSN Sun" },
-          { weekday: "Thu", day: 2, opponent: "hornets", home: false, time: "7:00 PM", network: "NBA TV" },
-          { weekday: "Sat", day: 4, opponent: "76ers", home: true, time: "8:00 PM", network: "ABC" },
-          { weekday: "Mon", day: 6, opponent: "raptors", home: false, time: "7:30 PM", network: "NBA TV" },
-          { weekday: "Wed", day: 8, opponent: "magic", home: true, time: "7:30 PM", network: "FDSN Sun" },
-          { weekday: "Fri", day: 10, opponent: "cavaliers", home: false, time: "7:00 PM", network: "ESPN" },
-          { weekday: "Sun", day: 12, opponent: "nets", home: true, time: "6:00 PM", network: "FDSN Sun" },
-          { weekday: "Tue", day: 14, opponent: "wizards", home: false, time: "7:00 PM", network: "Monumental" },
+          { weekday: "Wed", day: 1, opponent: "pistons", home: true, time: "4:30 PM", network: "FDSN Sun" },
+          { weekday: "Thu", day: 2, opponent: "hornets", home: false, time: "4:00 PM", network: "NBA TV" },
+          { weekday: "Sat", day: 4, opponent: "76ers", home: true, time: "5:00 PM", network: "ABC" },
+          { weekday: "Mon", day: 6, opponent: "raptors", home: false, time: "4:30 PM", network: "NBA TV" },
+          { weekday: "Wed", day: 8, opponent: "magic", home: true, time: "4:30 PM", network: "FDSN Sun" },
+          { weekday: "Fri", day: 10, opponent: "cavaliers", home: false, time: "4:00 PM", network: "ESPN" },
+          { weekday: "Sun", day: 12, opponent: "nets", home: true, time: "3:00 PM", network: "FDSN Sun" },
         ],
       },
     ],
@@ -250,7 +252,7 @@ const TEAM_PAGES = {
           { weekday: "Mon", day: 23, opponent: "raptors", home: true, teamScore: 115, opponentScore: 109 },
           { weekday: "Sat", day: 21, opponent: "bulls", home: false, teamScore: 92, opponentScore: 97 },
           { weekday: "Thu", day: 19, opponent: "hornets", home: false, teamScore: 110, opponentScore: 86 },
-          { weekday: "Sun", day: 15, opponent: "pistons", home: true, teamScore: 99, opponentScore: 94 },
+          { weekday: "Thu", day: 12, opponent: "pistons", home: true, teamScore: 99, opponentScore: 94 },
         ],
       },
     ],
@@ -353,20 +355,14 @@ function seriesRow(g, { isKept = false } = {}) {
 }
 
 // The series list (newest first); the most recent finished game is the one
-// that stays visible when the Series card is collapsed.
-// The series row for the game the sheet was opened for: "Today", or (from
-// Upcoming) its start time, date and spread, or (from Previous) its final score
-function openedSeriesGame({ game, date }) {
-  const { away, home } = game;
-  if (game.awayScore != null) return { away, home, date, awayScore: game.awayScore, homeScore: game.homeScore };
-  if (!date) return { away, home, date: "Today" };
-  return { away, home, date, time: game.time, line: spread(game) };
-}
-
-function seriesList(series, opened) {
-  const games = series.map((g) => (g.current ? openedSeriesGame(opened) : g));
-  const latestFinal = games.find((g) => g.awayScore != null);
-  return games.map((g) => seriesRow(g, { isKept: g === latestFinal })).join("");
+// that stays visible when the Series card is collapsed. Dated upcoming games
+// show their spread.
+function seriesList(series) {
+  const latestFinal = series.find((g) => g.awayScore != null);
+  return series
+    .map((g) => (g.time ? { ...g, line: spread(g) } : g))
+    .map((g, i) => seriesRow(g, { isKept: series[i] === latestFinal }))
+    .join("");
 }
 
 // A team with a page in TEAM_PAGES becomes a button that opens it. For a
@@ -403,7 +399,7 @@ function sheetFinal(game, side) {
   return { score: mine, lost: mine < theirs };
 }
 
-function sheetContent(game, date) {
+function sheetContent(game) {
   const d = GAME_DETAILS[`${game.away}@${game.home}`];
   return `
     <p class="sheet-league">${d.league}</p>
@@ -436,7 +432,7 @@ function sheetContent(game, date) {
     </section>
     <section class="sheet-card">
       <button class="day-header sheet-card-title" type="button" aria-expanded="true">Series${CHEVRON_UP}</button>
-      <ul class="day-games series-games keeps-one">${seriesList(d.series, { game, date })}</ul>
+      <ul class="day-games series-games keeps-one">${seriesList(d.series)}</ul>
     </section>`;
 }
 
@@ -509,8 +505,7 @@ function teamMonths(teamId, months) {
 // The schedule's games scroll inside their card; scrolling past the end of
 // the list carries on to the page, which scrolls the logo and record away
 // (and pulling down at the list's top brings them back).
-function teamPageContent(teamId, cardRow = teamGameRow(teamId, TEAM_PAGES[teamId].next)) {
-  const page = TEAM_PAGES[teamId];
+function teamPageContent(teamId, cardRow, schedule) {
   return `
     <div class="team-hero">
       <img class="team-page-logo" src="logos/${teamId}.svg" alt="" />
@@ -526,7 +521,7 @@ function teamPageContent(teamId, cardRow = teamGameRow(teamId, TEAM_PAGES[teamId
           <button class="segment" type="button" role="tab" data-view="previous" aria-selected="false">Previous Games</button>
           <button class="segment" type="button" role="tab" data-view="upcoming" aria-selected="true">Upcoming</button>
         </div>
-        <ul class="team-games" id="team-schedule">${teamMonths(teamId, page.upcoming)}</ul>
+        <ul class="team-games" id="team-schedule">${teamMonths(teamId, schedule)}</ul>
       </section>
     </div>`;
 }
@@ -668,7 +663,7 @@ function openSheet({ game, date, dateLabel }) {
   sheetDate.textContent = dateLabel;
   logoFlight?.finish(); // in case the sheet was closed mid-flight
   sheet.classList.remove("is-team-root");
-  sheetBody.innerHTML = sheetContent(game, date);
+  sheetBody.innerHTML = sheetContent(game);
   sheetBody.scrollTop = 0;
   showGamePage({ animate: false });
   setSheetOpen(true);
@@ -692,7 +687,7 @@ function openTeamSheet(teamId) {
 // game page.
 // The team page's top card for the game the sheet was opened for:
 //   from Today      "Today 18 · @ Heat · 4:00 PM"
-//   from Upcoming   "Wed 18 · @ Heat · 4:00 PM"
+//   from Upcoming   "Fri 20 · @ Heat · 4:00 PM" (its schedule entry)
 //   from Previous   the final score, like the Previous Games rows, as "Today"
 //   from the menu   the team's usual next game
 function teamCardRow(teamId, opened) {
@@ -704,18 +699,26 @@ function teamCardRow(teamId, opened) {
   return teamGameRow(teamId, teamCardGame(teamId, opened));
 }
 
+// A team's scheduled game on a date like "Fri, Mar 20"
+function scheduledGame(teamId, date) {
+  const [, month, day] = date.split(/[ ,]+/);
+  return TEAM_PAGES[teamId].upcoming
+    .find((m) => m.month.startsWith(month))
+    ?.games.find((g) => g.day === Number(day));
+}
+
+// Today's game (from Today or the menu), or the Upcoming game's entry in
+// the team's schedule
 function teamCardGame(teamId, opened) {
-  const fallback = TEAM_PAGES[teamId].next;
-  const game = opened?.game;
-  if (!game) return fallback;
-  const [weekday, , day] = opened.date ? opened.date.split(/[ ,]+/) : [];
-  return {
-    ...(opened.date ? { weekday, day: Number(day) } : { label: "Today", day: fallback.day }),
-    opponent: game.away === teamId ? game.home : game.away,
-    home: game.home === teamId,
-    time: game.time,
-    network: fallback.network,
-  };
+  return (opened?.date && scheduledGame(teamId, opened.date)) || TEAM_PAGES[teamId].next;
+}
+
+// The schedule, minus the game already shown in the top card
+let teamUpcoming = null;
+function scheduleWithout(teamId, shown) {
+  return TEAM_PAGES[teamId].upcoming
+    .map(({ month, games }) => ({ month, games: games.filter((g) => g !== shown) }))
+    .filter(({ games }) => games.length);
 }
 
 function showTeamPage(teamId, opened = null) {
@@ -724,7 +727,8 @@ function showTeamPage(teamId, opened = null) {
   Object.entries(TEAM_PAGES[teamId].theme).forEach(([name, value]) =>
     teamPage.style.setProperty(`--team-${name}`, value)
   );
-  teamBody.innerHTML = teamPageContent(teamId, teamCardRow(teamId, opened));
+  teamUpcoming = scheduleWithout(teamId, opened?.game.awayScore == null && teamCardGame(teamId, opened));
+  teamBody.innerHTML = teamPageContent(teamId, teamCardRow(teamId, opened), teamUpcoming);
   teamBody.dataset.team = teamId;
   teamBody.scrollTop = 0;
   sheet.classList.add("is-team");
@@ -825,7 +829,7 @@ teamBody.addEventListener("click", (e) => {
   control.querySelectorAll(".segment").forEach((s) => s.setAttribute("aria-selected", String(s === segment)));
   const teamId = teamBody.dataset.team;
   const schedule = document.getElementById("team-schedule");
-  schedule.innerHTML = teamMonths(teamId, TEAM_PAGES[teamId][view]);
+  schedule.innerHTML = teamMonths(teamId, view === "upcoming" ? teamUpcoming : TEAM_PAGES[teamId].previous);
   schedule.scrollTop = 0;
 });
 
