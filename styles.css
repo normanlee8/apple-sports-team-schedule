@@ -544,9 +544,12 @@ img.menu-icon--league {
   transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* Follows the finger while the grabber is dragged */
+/* Follows the finger (or mouse) while the sheet is dragged down; no text
+   gets selected along the way */
 .sheet.is-dragging {
   transition: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .sheet-handle {
@@ -995,9 +998,10 @@ img.menu-icon--league {
 
 /* The cards stay together and stick at the top of the scroll area once the
    logo and record have scrolled away. The section is exactly as tall as the
-   scroll area, so the page can only scroll by the logo + record; after that
-   the schedule's games scroll inside their card (see app.js). The schedule
-   card is only as tall as its content, up to the space left. */
+   scroll area, so the page can only scroll by the logo + record. Scrolling
+   over the schedule scrolls its games directly; at the end of the list the
+   scroll carries on to the page (native scroll chaining). The schedule card
+   is only as tall as its content, up to the space left. */
 .team-sticky {
   position: sticky;
   top: 0;
@@ -1029,16 +1033,12 @@ img.menu-icon--league {
 .team-schedule > .team-games {
   flex: 0 1 auto;
   min-height: 0;
-  overflow-y: hidden;
+  overflow-y: auto;
   scrollbar-width: none;
 }
 
 .team-schedule > .team-games::-webkit-scrollbar {
   display: none;
-}
-
-.team-sticky.is-stuck .team-schedule > .team-games {
-  overflow-y: auto;
 }
 
 /* Dark cards: black at 48% over the gradient (sampled from the mockup), so

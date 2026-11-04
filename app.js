@@ -506,8 +506,9 @@ function teamMonths(teamId, months) {
     .join("");
 }
 
-// The logo and record scroll away; the cards below stick once they reach the
-// top, and from then on the schedule's games scroll inside their card.
+// The schedule's games scroll inside their card; scrolling past the end of
+// the list carries on to the page, which scrolls the logo and record away
+// (and pulling down at the list's top brings them back).
 function teamPageContent(teamId, cardRow = teamGameRow(teamId, TEAM_PAGES[teamId].next)) {
   const page = TEAM_PAGES[teamId];
   return `
@@ -726,26 +727,11 @@ function showTeamPage(teamId, opened = null) {
   teamBody.innerHTML = teamPageContent(teamId, teamCardRow(teamId, opened));
   teamBody.dataset.team = teamId;
   teamBody.scrollTop = 0;
-  updateTeamStick();
   sheet.classList.add("is-team");
   teamPage.inert = false;
   gamePage.inert = true;
   sheetDate.classList.remove("is-open");
 }
-
-// Scrolling first moves the page until the logo and record are gone and the
-// cards stick; only then can the games scroll inside their card. (While the
-// list can't scroll, wheel and touch scrolling over it move the page; once
-// the list is back at its top, scrolling up moves the page again.)
-function updateTeamStick() {
-  const sticky = teamBody.querySelector(".team-sticky");
-  if (!sticky) return;
-  const stuck = teamBody.scrollTop >= teamBody.scrollHeight - teamBody.clientHeight - 1;
-  sticky.classList.toggle("is-stuck", stuck);
-  if (!stuck) document.getElementById("team-schedule").scrollTop = 0;
-}
-
-teamBody.addEventListener("scroll", updateTeamStick, { passive: true });
 
 function showGamePage({ animate = true } = {}) {
   if (!animate) sheet.classList.add("no-page-anim");
@@ -843,27 +829,30 @@ teamBody.addEventListener("click", (e) => {
   schedule.scrollTop = 0;
 });
 
+// ---- Swipe down to close ----
+// The grabber always drags the sheet. Anywhere else, a downward swipe drags it
+// too when the content under the finger is scrolled to its top (otherwise it
+// scrolls the content, as in iOS sheets).
 let drag = null;
 
-sheetHandle.addEventListener("pointerdown", (e) => {
-  drag = { startY: e.clientY, startTime: e.timeStamp, dy: 0 };
-  sheetHandle.setPointerCapture(e.pointerId);
+function beginDrag(y, time) {
+  drag = { startY: y, startTime: time, dy: 0 };
   sheet.classList.add("is-dragging");
   sheetDate.style.transition = "none"; // fade with the finger, not after it
-});
+}
 
-sheetHandle.addEventListener("pointermove", (e) => {
+function moveDrag(y) {
   if (!drag) return;
-  drag.dy = Math.max(0, e.clientY - drag.startY);
+  drag.dy = Math.max(0, y - drag.startY);
   sheet.style.transform = `translateY(${drag.dy}px)`;
   const fade = String(1 - drag.dy / sheet.offsetHeight);
   sheetScrim.style.opacity = fade;
   if (sheetDate.classList.contains("is-open")) sheetDate.style.opacity = fade;
-});
+}
 
-function endDrag(e) {
+function endDrag(time) {
   if (!drag) return;
-  const velocity = drag.dy / Math.max(1, e.timeStamp - drag.startTime);
+  const velocity = drag.dy / Math.max(1, time - drag.startTime);
   const dismiss = drag.dy > DISMISS_DISTANCE || (drag.dy > 20 && velocity > DISMISS_VELOCITY);
   drag = null;
   // Clearing the inline styles lets the transition carry on from where the finger let go
@@ -875,8 +864,101 @@ function endDrag(e) {
   if (dismiss) setSheetOpen(false);
 }
 
-sheetHandle.addEventListener("pointerup", endDrag);
-sheetHandle.addEventListener("pointercancel", endDrag);
+// True when every scrollable box between the target and the sheet is at its top
+function scrolledToTop(target) {
+  for (let el = target; el && el !== sheet; el = el.parentElement) {
+    const scrollable = /(auto|scroll)/.test(getComputedStyle(el).overflowY) && el.scrollHeight > el.clientHeight;
+    if (scrollable && el.scrollTop > 0) return false;
+  }
+  return true;
+}
+
+// Grabber
+sheetHandle.addEventListener("pointerdown", (e) => {
+  sheetHandle.setPointerCapture(e.pointerId);
+  beginDrag(e.clientY, e.timeStamp);
+});
+sheetHandle.addEventListener("pointermove", (e) => moveDrag(e.clientY));
+sheetHandle.addEventListener("pointerup", (e) => endDrag(e.timeStamp));
+sheetHandle.addEventListener("pointercancel", (e) => endDrag(e.timeStamp));
+
+// Swipe gestures start as "maybe": the first few pixels of movement decide
+// whether it's a sheet drag (down, mostly vertical, content at its top) or
+// a normal scroll / tap.
+const DRAG_SLOP = 6; // px before deciding
+let swipe = null;
+
+function decideSwipe(dx, dy) {
+  return dy > 0 && Math.abs(dy) > Math.abs(dx) && scrolledToTop(swipe.target);
+}
+
+// Touch: decided on the first move, then the native scroll is blocked
+sheet.addEventListener(
+  "touchstart",
+  (e) => {
+    if (e.touches.length !== 1 || sheetHandle.contains(e.target)) return;
+    const t = e.touches[0];
+    swipe = { x: t.clientX, y: t.clientY, time: e.timeStamp, target: e.target, decided: false };
+  },
+  { passive: true }
+);
+
+sheet.addEventListener(
+  "touchmove",
+  (e) => {
+    if (!swipe) return;
+    const t = e.touches[0];
+    if (!swipe.decided) {
+      const dx = t.clientX - swipe.x;
+      const dy = t.clientY - swipe.y;
+      if (Math.abs(dx) < DRAG_SLOP && Math.abs(dy) < DRAG_SLOP) return;
+      swipe.decided = true;
+      if (e.cancelable && decideSwipe(dx, dy)) beginDrag(swipe.y, swipe.time);
+    }
+    if (drag) {
+      e.preventDefault();
+      moveDrag(t.clientY);
+    }
+  },
+  { passive: false }
+);
+
+const endTouch = (e) => {
+  if (drag && swipe) endDrag(e.timeStamp);
+  swipe = null;
+};
+sheet.addEventListener("touchend", endTouch);
+sheet.addEventListener("touchcancel", endTouch);
+
+// Mouse: same idea; a drag swallows the click that would follow it
+sheet.addEventListener("pointerdown", (e) => {
+  if (e.pointerType !== "mouse" || e.button !== 0 || sheetHandle.contains(e.target)) return;
+  swipe = { x: e.clientX, y: e.clientY, time: e.timeStamp, target: e.target, decided: false, mouse: true };
+});
+
+window.addEventListener("pointermove", (e) => {
+  if (!swipe?.mouse) return;
+  if (!swipe.decided) {
+    const dx = e.clientX - swipe.x;
+    const dy = e.clientY - swipe.y;
+    if (Math.abs(dx) < DRAG_SLOP && Math.abs(dy) < DRAG_SLOP) return;
+    swipe.decided = true;
+    if (decideSwipe(dx, dy)) beginDrag(swipe.y, swipe.time);
+  }
+  if (drag) moveDrag(e.clientY);
+});
+
+window.addEventListener("pointerup", (e) => {
+  if (!swipe?.mouse) return;
+  if (drag) {
+    endDrag(e.timeStamp);
+    // Swallow the click this release produces (if any) — only this one
+    const swallow = (c) => c.stopPropagation();
+    window.addEventListener("click", swallow, { capture: true, once: true });
+    setTimeout(() => window.removeEventListener("click", swallow, { capture: true }), 0);
+  }
+  swipe = null;
+});
 sheetScrim.addEventListener("click", () => setSheetOpen(false));
 
 // League / team menu: opens from the NBA button; a tap anywhere outside it,
