@@ -421,9 +421,10 @@ img.menu-icon--league {
 
 .time {
   font-family: var(--font-rounded);
-  font-size: 14px;
-  font-weight: 400;
+  font-size: 16px;
+  font-weight: 600;
   letter-spacing: -0.2px;
+  white-space: nowrap;
 }
 
 .detail {
