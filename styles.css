@@ -660,8 +660,9 @@ img.menu-icon--league {
   margin-top: -3.8px;
 }
 
+/* 4px between the bottom of the name and the top of the record's digits */
 .sheet-team-record {
-  margin-top: -2px;
+  margin-top: -1px;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.6);
 }
@@ -673,24 +674,27 @@ img.menu-icon--league {
   font-weight: 600;
 }
 
-/* Finished games: score over "Final", centered on the logos */
+/* Finished games: each score sits above its team's logo (big narrow SF Pro,
+   larger than the 62px logo; loser dimmed), and "Final" sits between the two
+   scores, level with their digits */
+.sheet-score {
+  margin-bottom: 4px;
+  font-size: 64px;
+  font-weight: 600;
+  font-stretch: 60%;
+  font-variant-numeric: proportional-nums;
+  line-height: 1;
+}
+
+.sheet-score.is-loser {
+  color: rgba(255, 255, 255, 0.3);
+}
+
 .sheet-final {
   justify-self: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 9px;
-}
-
-.sheet-final-score {
-  font-size: 24px;
+  margin-top: 23px;
+  font-size: 16px;
   font-weight: 600;
-  white-space: nowrap;
-}
-
-.sheet-final-label {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
 }
 
 /* Cards: corner radius is concentric with the sheet's (38px − 12px inset) */
@@ -809,12 +813,12 @@ img.menu-icon--league {
   font-weight: 600;
 }
 
-/* Just above the date: the bottom of the top band, nudged into the logos'
-   band so it sits ~5px over the date */
+/* Above the date: the bottom of the top band, nudged down so the visible gap
+   time → date (17px) matches date → spread below it */
 .series-time {
   grid-row: 1;
   align-self: end;
-  transform: translateY(10px);
+  transform: translateY(2px);
   font-size: 12px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.35);
@@ -1051,11 +1055,22 @@ img.menu-icon--league {
   border-bottom: 1px solid var(--hairline);
 }
 
-/* The single "next game" card: no divider, and the card's 16px padding sets
-   its height. Nor does the schedule's last row have a divider. */
-.team-card:not(.team-schedule) .team-game {
+/* The single top card (next game, or a final score when opened from
+   Previous): no divider, and the card's 16px padding sets its height.
+   Nor does the schedule's last row have a divider. */
+.team-card:not(.team-schedule) .team-game,
+.team-card:not(.team-schedule) .game {
   height: auto;
   border-bottom: 0;
+}
+
+/* The final-score row has nothing in its top band; collapse it, then place
+   the row so its logos-and-scores line sits on the card's vertical center
+   (the team names hang below it, with ~12px under them):
+   16 padding + 8 + half the 46px line = half the card's inner height */
+.team-card:not(.team-schedule) .game {
+  grid-template-rows: auto 46px auto;
+  margin: 8px 0 -7px;
 }
 
 .team-schedule .day:last-child .day-games > :last-child {

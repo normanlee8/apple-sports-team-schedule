@@ -132,7 +132,7 @@ const GAME_DETAILS = {
     // Newest first; games without scores haven't been played yet
     series: [
       { away: "warriors", home: "heat", date: "Thu, May 21", time: "12:00 PM", line: "MIA -8.5" },
-      { away: "warriors", home: "heat", date: "Today" },
+      { current: true }, // the game the sheet was opened for (see seriesList)
       { away: "heat", home: "warriors", date: "Fri, Apr 2", awayScore: 126, homeScore: 117 },
       { away: "heat", home: "warriors", date: "Wed, Mar 21", awayScore: 98, homeScore: 117 },
     ],
@@ -354,14 +354,28 @@ function seriesRow(g, { isKept = false } = {}) {
 
 // The series list (newest first); the most recent finished game is the one
 // that stays visible when the Series card is collapsed.
-function seriesList(series) {
-  const latestFinal = series.find((g) => g.awayScore != null);
-  return series.map((g) => seriesRow(g, { isKept: g === latestFinal })).join("");
+// The series row for the game the sheet was opened for: "Today", or (from
+// Upcoming) its start time, date and spread, or (from Previous) its final score
+function openedSeriesGame({ game, date }) {
+  const { away, home } = game;
+  if (game.awayScore != null) return { away, home, date, awayScore: game.awayScore, homeScore: game.homeScore };
+  if (!date) return { away, home, date: "Today" };
+  return { away, home, date, time: game.time, line: spread(game) };
 }
 
-// A team with a page in TEAM_PAGES becomes a button that opens it
-function sheetTeam(id) {
-  const inner = `
+function seriesList(series, opened) {
+  const games = series.map((g) => (g.current ? openedSeriesGame(opened) : g));
+  const latestFinal = games.find((g) => g.awayScore != null);
+  return games.map((g) => seriesRow(g, { isKept: g === latestFinal })).join("");
+}
+
+// A team with a page in TEAM_PAGES becomes a button that opens it. For a
+// finished game, the team's score sits above its logo (dimmed if it lost).
+function sheetTeam(id, final = null) {
+  const score = final
+    ? `<span class="sheet-score${final.lost ? " is-loser" : ""}">${final.score}</span>`
+    : "";
+  const inner = `${score}
       <img class="sheet-logo" src="logos/${id}.svg" alt="" />
       <span class="sheet-team-name">${TEAMS[id].name}</span>
       <span class="sheet-team-record">${TEAMS[id].record}</span>`;
@@ -375,23 +389,28 @@ function oddsCell([line, price]) {
 }
 
 // Between the logos: the final score for a finished game, else the start time
+// Between the logos: "Final" for a finished game (its scores sit above the
+// logos), else the start time
 function sheetCenter(game) {
   if (game.awayScore == null) return `<span class="sheet-time">${game.time}</span>`;
-  return `
-    <div class="sheet-final">
-      <span class="sheet-final-score">${game.awayScore} – ${game.homeScore}</span>
-      <span class="sheet-final-label">${game.overtime ? "Final/OT" : "Final"}</span>
-    </div>`;
+  return `<span class="sheet-final">${game.overtime ? "Final/OT" : "Final"}</span>`;
 }
 
-function sheetContent(game) {
+function sheetFinal(game, side) {
+  if (game.awayScore == null) return null;
+  const [mine, theirs] =
+    side === "away" ? [game.awayScore, game.homeScore] : [game.homeScore, game.awayScore];
+  return { score: mine, lost: mine < theirs };
+}
+
+function sheetContent(game, date) {
   const d = GAME_DETAILS[`${game.away}@${game.home}`];
   return `
     <p class="sheet-league">${d.league}</p>
     <div class="sheet-matchup">
-      ${sheetTeam(game.away)}
+      ${sheetTeam(game.away, sheetFinal(game, "away"))}
       ${sheetCenter(game)}
-      ${sheetTeam(game.home)}
+      ${sheetTeam(game.home, sheetFinal(game, "home"))}
     </div>
     <section class="sheet-card">
       <h3 class="sheet-card-title">Betting Odds</h3>
@@ -417,7 +436,7 @@ function sheetContent(game) {
     </section>
     <section class="sheet-card">
       <button class="day-header sheet-card-title" type="button" aria-expanded="true">Series${CHEVRON_UP}</button>
-      <ul class="day-games series-games keeps-one">${seriesList(d.series)}</ul>
+      <ul class="day-games series-games keeps-one">${seriesList(d.series, { game, date })}</ul>
     </section>`;
 }
 
@@ -489,7 +508,7 @@ function teamMonths(teamId, months) {
 
 // The logo and record scroll away; the cards below stick once they reach the
 // top, and from then on the schedule's games scroll inside their card.
-function teamPageContent(teamId) {
+function teamPageContent(teamId, cardRow = teamGameRow(teamId, TEAM_PAGES[teamId].next)) {
   const page = TEAM_PAGES[teamId];
   return `
     <div class="team-hero">
@@ -498,7 +517,7 @@ function teamPageContent(teamId) {
     </div>
     <div class="team-sticky">
       <section class="sheet-card team-card">
-        <ul class="team-games">${teamGameRow(teamId, page.next)}</ul>
+        <ul class="team-games">${cardRow}</ul>
       </section>
       <section class="sheet-card team-card team-schedule">
         <div class="segmented" data-active="upcoming" role="tablist">
@@ -598,6 +617,7 @@ function sheetGameFor(row) {
   const games = date ? GAMES[activeTab].find((day) => day.date === date).games : GAMES.today;
   return {
     game: games.find((g) => `${g.away}@${g.home}` === key),
+    date: date ?? null, // e.g. "Wed, Mar 18"; null for Today
     dateLabel: date ? longDate(date) : "Today",
   };
 }
@@ -638,12 +658,16 @@ function setSheetOpen(open, { showDate = true } = {}) {
   sheet.inert = !open;
 }
 
-function openSheet({ game, dateLabel }) {
+// The game the sheet was opened for, and its date (null for Today)
+let sheetGame = null;
+
+function openSheet({ game, date, dateLabel }) {
+  sheetGame = { game, date };
   sheet.setAttribute("aria-label", `${TEAMS[game.away].name} at ${TEAMS[game.home].name}, ${dateLabel}`);
   sheetDate.textContent = dateLabel;
   logoFlight?.finish(); // in case the sheet was closed mid-flight
   sheet.classList.remove("is-team-root");
-  sheetBody.innerHTML = sheetContent(game);
+  sheetBody.innerHTML = sheetContent(game, date);
   sheetBody.scrollTop = 0;
   showGamePage({ animate: false });
   setSheetOpen(true);
@@ -665,13 +689,41 @@ function openTeamSheet(teamId) {
 // Team page: fades in over the game page while the tapped logo flies to it
 // (back reverses it). The game's date above the sheet only shows with the
 // game page.
-function showTeamPage(teamId) {
+// The team page's top card for the game the sheet was opened for:
+//   from Today      "Today 18 · @ Heat · 4:00 PM"
+//   from Upcoming   "Wed 18 · @ Heat · 4:00 PM"
+//   from Previous   the final score, like the Previous Games rows, as "Today"
+//   from the menu   the team's usual next game
+function teamCardRow(teamId, opened) {
+  const game = opened?.game;
+  if (game?.awayScore != null) {
+    const { away, home, awayScore, homeScore } = game;
+    return seriesRow({ away, home, awayScore, homeScore, date: "Today" });
+  }
+  return teamGameRow(teamId, teamCardGame(teamId, opened));
+}
+
+function teamCardGame(teamId, opened) {
+  const fallback = TEAM_PAGES[teamId].next;
+  const game = opened?.game;
+  if (!game) return fallback;
+  const [weekday, , day] = opened.date ? opened.date.split(/[ ,]+/) : [];
+  return {
+    ...(opened.date ? { weekday, day: Number(day) } : { label: "Today", day: fallback.day }),
+    opponent: game.away === teamId ? game.home : game.away,
+    home: game.home === teamId,
+    time: game.time,
+    network: fallback.network,
+  };
+}
+
+function showTeamPage(teamId, opened = null) {
   teamTitle.textContent = TEAM_PAGES[teamId].fullName;
   teamPage.dataset.team = teamId; // per-team styling hooks
   Object.entries(TEAM_PAGES[teamId].theme).forEach(([name, value]) =>
     teamPage.style.setProperty(`--team-${name}`, value)
   );
-  teamBody.innerHTML = teamPageContent(teamId);
+  teamBody.innerHTML = teamPageContent(teamId, teamCardRow(teamId, opened));
   teamBody.dataset.team = teamId;
   teamBody.scrollTop = 0;
   updateTeamStick();
@@ -763,7 +815,7 @@ function headerLogo(teamId) {
 sheetBody.addEventListener("click", (e) => {
   const team = e.target.closest(".sheet-team[data-team]");
   if (!team) return;
-  showTeamPage(team.dataset.team);
+  showTeamPage(team.dataset.team, sheetGame);
   flyLogo(headerLogo(team.dataset.team), teamBody.querySelector(".team-page-logo"));
 });
 
