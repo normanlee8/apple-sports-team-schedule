@@ -20,7 +20,11 @@
   --glass-border: rgba(255, 255, 255, 0.2);
   --font: -apple-system, BlinkMacSystemFont, "SF Pro", system-ui, sans-serif;
   --font-rounded: ui-rounded, "SF Pro Rounded", var(--font);
-  --sheet-top: 104px; /* game sheet's top edge: the "Sports" baseline */
+  /* Space at the top for the status bar: the drawn iPhone bar on a computer,
+     the phone's own (safe area) on a real phone — see the media query below */
+  --status-h: 54px;
+  /* Game sheet's top edge: the "Sports" baseline, 50px below the status bar */
+  --sheet-top: calc(var(--status-h) + 50px);
 }
 
 * {
@@ -73,11 +77,24 @@ button {
   }
 }
 
+/* On a real phone (narrow + touch), the phone shows its own status bar: hide
+   the drawn time and icons and leave its safe area instead — the real status
+   bar's height when added to the Home Screen (full screen), or a small gap
+   under Safari's toolbar in a normal tab */
+@media (max-width: 430px) and (pointer: coarse) {
+  :root {
+    --status-h: max(env(safe-area-inset-top, 0px), 12px);
+  }
+  .status-bar > * {
+    visibility: hidden;
+  }
+}
+
 /* ---------- Status bar ---------- */
 .status-bar {
   position: relative;
   z-index: 40; /* stays visible over the game sheet's backdrop */
-  height: 54px;
+  height: var(--status-h);
   flex: none;
   display: flex;
   align-items: center;
